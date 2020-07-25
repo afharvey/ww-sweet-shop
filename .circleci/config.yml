@@ -12,8 +12,8 @@ jobs:
       - image: circleci/golang:latest
     steps:
       - checkout
-      - run: go get github.com/mattn/goveralls -mod=readonly
-      - run: go test -v -cover -race -coverprofile=coverage.out
+      - run: go get github.com/mattn/goveralls
+      - run: go test -v -cover -race -coverprofile=coverage.out ./...
       - run: /go/bin/goveralls -coverprofile=coverage.out -service=circle-ci -repotoken $COVERALLS_TOKEN
 
 workflows:
