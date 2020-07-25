@@ -12,5 +12,3 @@ github.com/graphql-go/graphql/language/source
 github.com/graphql-go/graphql/language/typeInfo
 github.com/graphql-go/graphql/language/visitor
 github.com/graphql-go/graphql/testutil
-# github.com/mattn/goveralls v0.0.6
-## explicit
