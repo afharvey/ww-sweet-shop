@@ -6,12 +6,12 @@ import (
 )
 
 type Order struct {
-	Desired int
-	Size    int
+	Desired float64
+	Size    float64
 	Boxes   []*Box
 }
 
-func NewOrder(d int) *Order {
+func NewOrder(d float64) *Order {
 	return &Order{
 		Desired: d,
 		Boxes:   make([]*Box, 0),
@@ -19,18 +19,25 @@ func NewOrder(d int) *Order {
 }
 
 func (o *Order) Add(b *Box) {
-	fmt.Printf("add %d\n", b.Size)
+	fmt.Printf("add %f\n", b.Size)
 	o.Boxes = append(o.Boxes, b)
 	o.Size += b.Size
 }
 
+func (o *Order) Remaining() float64 {
+	if r := o.Desired - o.Size; r > 0 {
+		return r
+	}
+	return 0
+}
+
 // An Box is a kind of box of sweets.
 type Box struct {
-	Size int
+	Size float64
 }
 
 // Designs the optimal order given a desired quantity and list of boxes we can use.
-func BuildOrder(desired int, kindsOfBox []*Box) (order *Order) {
+func BuildOrder(desired float64, kindsOfBox []*Box) (order *Order) {
 	order = NewOrder(desired)
 
 	sort.Slice(kindsOfBox, func(i, j int) bool {
@@ -39,36 +46,18 @@ func BuildOrder(desired int, kindsOfBox []*Box) (order *Order) {
 
 	for _, v := range kindsOfBox {
 		box := v
-
-		remaining := order.Desired - order.Size
-		if remaining < 1 {
-			return
-		}
-
-		if remaining == box.Size {
-			order.Add(box)
-			return
-		}
-
-		// How many of this box can we fit into the order?
-		boxesToAdd := remaining / box.Size
-		fmt.Printf("desired:%d remaining:%d size:%d, want to add %d boxes\n", order.Desired, remaining, box.Size, boxesToAdd)
-		if boxesToAdd > 0 {
-			for i := 0; i < boxesToAdd; i++ {
-				order.Add(box)
-			}
-			continue
-		}
 		
-		previous := kindsOfBox[len(kindsOfBox)-1]
-		order.Add(previous)
-		return 
+		if order.Remaining() >= box.Size {
+			j := int(order.Remaining()) / int(box.Size)
+			for i:=0;i<j;i++{
+				newBox := v
+				order.Add(newBox)
+			}
+		}
 	}
 
-	fmt.Println("out")
-
-	// No more boxes would fit so the best we can do is add the smallest.
-	smallest := kindsOfBox[len(kindsOfBox)-1]
-	order.Add(smallest)
 	return
 }
+
+//https://www.geeksforgeeks.org/find-number-currency-notes-sum-upto-given-amount/
+//https://www.w3resource.com/c-programming-exercises/basic-declarations-and-expressions/c-programming-basic-exercises-16.php
