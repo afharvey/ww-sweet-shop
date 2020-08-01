@@ -20,7 +20,7 @@ func TestBuildOrder(t *testing.T) {
 	tests := []struct {
 		Name     string
 		Kinds    []*packer.Box
-		Quantity float64
+		Quantity int
 		Expected *packer.Order
 	}{
 		//{

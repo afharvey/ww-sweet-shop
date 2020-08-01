@@ -6,12 +6,20 @@ import (
 )
 
 type Order struct {
-	Desired float64
-	Size    float64
+	Desired int
+	Size    int
 	Boxes   []*Box
 }
 
-func NewOrder(d float64) *Order {
+func (o *Order) String() string {
+	m := fmt.Sprintf("\ndesired:%d size:%d boxes:%d", o.Desired, o.Size, len(o.Boxes))
+	for i, v := range o.Boxes {
+		m += fmt.Sprintf("\nbox[%d]:%d", i+1, v.Size)
+	}
+	return m
+}
+
+func NewOrder(d int) *Order {
 	return &Order{
 		Desired: d,
 		Boxes:   make([]*Box, 0),
@@ -19,12 +27,11 @@ func NewOrder(d float64) *Order {
 }
 
 func (o *Order) Add(b *Box) {
-	fmt.Printf("add %f\n", b.Size)
 	o.Boxes = append(o.Boxes, b)
 	o.Size += b.Size
 }
 
-func (o *Order) Remaining() float64 {
+func (o *Order) Remaining() int {
 	if r := o.Desired - o.Size; r > 0 {
 		return r
 	}
@@ -33,11 +40,19 @@ func (o *Order) Remaining() float64 {
 
 // An Box is a kind of box of sweets.
 type Box struct {
-	Size float64
+	Size int
+}
+
+func NewBox(s int) *Box {
+	return &Box{Size: s}
+}
+
+func (b *Box) Copy() *Box {
+	return &Box{Size: b.Size}
 }
 
 // Designs the optimal order given a desired quantity and list of boxes we can use.
-func BuildOrder(desired float64, kindsOfBox []*Box) (order *Order) {
+func BuildOrder(desired int, kindsOfBox []*Box) (order *Order) {
 	order = NewOrder(desired)
 
 	sort.Slice(kindsOfBox, func(i, j int) bool {
