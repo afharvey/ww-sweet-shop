@@ -7,25 +7,35 @@ import (
 )
 
 func main() {
-	kinds := []int{33, 34, 250, 500, 1000, 2000, 5000, 6000, 7000, 6000, 7000, 8000, 9000, 10000}
+	kinds := []int{2, 33, 34, 250, 500, 1000, 2000, 5000, 6000, 7000, 6000, 7000, 8000, 9000, 10000}
 	sort.Slice(kinds, func(i, j int) bool {
 		return kinds[i] > kinds[j] // descending
 	})
-	smallest := kinds[len(kinds)-1]
+	//smallest := kinds[len(kinds)-1]
 
-	//challenges := []int{1, 20, 66, 77, 100, 250, 251, 500, 501, 752, 1752, 5001, 12001, 100000}
-	challenges := []int{752}
+	challenges := []int{1, 20, 66, 77, 100, 250, 251, 500, 501, 752, 1752, 5001, 12001, 100000, 100035}
+	//challenges := []int{66, 1752}
 	for _, challenge := range challenges {
-		target := packer.MakeTarget(challenge, smallest)
-		fmt.Printf("challenge: %d   old challenge: %d\n", challenge, target)
-		MakeOrder(challenge, kinds)
-
+		
+		fmt.Printf("challenge: %d   starting kinds: %v\n", challenge, kinds)
+		for _, kind := range kinds {
+			target := packer.MakeTarget(challenge, kind)
+			fmt.Printf("%d:%d, ", kind, target)
+		}
 		fmt.Println()
+		
+		//MakeOrder(challenge, kinds)
+		//fmt.Println()
 		fmt.Println()
 	}
 }
 
 func MakeOrder(want int, kinds []int) {
+
+	ordered := want
+
+	smallest := kinds[len(kinds)-1]
+	var totalSent int
 
 	// preprocess - exclude kinds we dont need or quit early if we can.
 	if QuitEarly(want, kinds) {
@@ -40,12 +50,12 @@ func MakeOrder(want int, kinds []int) {
 
 	fmt.Println("target: ", want)
 	fmt.Println("kinds: ", k)
-	fmt.Println("a: ", a)
-	fmt.Println("b: ", b)
 
 	var iterations int
 
 outer:
+	fmt.Println("a: ", a)
+	fmt.Println("b: ", b)
 	for _, aa := range a {
 		for _, bb := range b {
 
@@ -56,16 +66,25 @@ outer:
 				continue
 			}
 
-			fmt.Printf("- \twant:%d\ta:%d\tb:%d\tsum:%d  \tdemo:%d\n", want, aa, bb, sum, aa+(bb*2))
+			fmt.Printf("- \twant:%d\ta:%d\tb:%d\tsum:%d\n", want, aa, bb, sum)
 
 			want = want - sum
-			if want > kinds[len(kinds)-1] {
+			totalSent += sum
+			if want > 0 {
+				a, _ = PruneKinds(want, a)
+				b, _ = PruneKinds(want, b)
 				goto outer
 			}
 		}
 	}
 
-	fmt.Printf("final:\t%d\t\treached in iterations:%d\n", want, iterations)
+	if want > 0 {
+		want = want - smallest
+		totalSent += smallest
+		fmt.Printf("smallest:\t%d\n", smallest)
+	}
+
+	fmt.Printf("orderd:\t%d\tsent:\t%d\tbudget:%d\t\treached in iterations:%d\n", ordered, totalSent, want, iterations)
 }
 
 func QuitEarly(want int, kinds []int) bool {
@@ -80,6 +99,26 @@ func QuitEarly(want int, kinds []int) bool {
 }
 
 func PruneKinds(want int, kinds []int) ([]int, bool) {
+
+	// Are there any kinds which divide without a remainder?
+	l := make([]int, 0)
+	for _, i := range kinds {
+		if i == 0 {
+			continue
+		}
+
+		x := want % i
+		if x == 0 {
+			l = append(l, i)
+		}
+
+	}
+	if len(l) > 0 {
+		l = append(l, 0)
+		return l, false
+	}
+
+	// Otherwise continue with removing kinds which are too large to be useful.
 	k := make([]int, 0)
 	for _, i := range kinds {
 
@@ -91,8 +130,10 @@ func PruneKinds(want int, kinds []int) ([]int, bool) {
 		if i > want {
 			continue
 		}
+
 		k = append(k, i)
 	}
+
 	return k, false
 }
 
