@@ -4,10 +4,10 @@
 
 ## Problem
 
-You have a factory which makes chocolate bars. They come in different kinds of boxes.
+You have a factory which makes chocolate bars. They come in different kinds of boxes.  
 eg: boxes of 10, boxes of 100, boxes of 25
 
-Customers order them, they simply say how many they have. You must fulfill their order using the different kinds of boxes.
+Customers give you orders requesting a quantity. You must fulfill their order using the different kinds of boxes.  
 eg: a customer orders 999 chocolate bars.
 
 This looks like a bin packing problem. You must make the order in the most efficient way meeting these criteria:
@@ -16,9 +16,9 @@ This looks like a bin packing problem. You must make the order in the most effic
 
 ### Example:
 
-Kinds of boxes: 10000, 9000, 8000, 7000, 6000, 5000, 2000, 1000, 500, 250, 99, 66, 34, 33
-A customer orders 752 chocolate bars.
-Using the boxes we have, the best we can send is 759 which is 7 too many but within the rules.
+Kinds of boxes: 10000, 9000, 8000, 7000, 6000, 5000, 2000, 1000, 500, 250, 99, 66, 34, 33  
+A customer orders 752 chocolate bars.  
+Using the boxes we have, the best we can send is 759 which is 7 too many but within the rules.  
 To fulfill the order we ship these boxes: 99, 99, 99, 99, 99, 99, 99, 66
 
 ## Solution
@@ -44,7 +44,7 @@ func MakeTarget(requested, unitSize int) int {
 }
 ```
 
-We can pick the box with the smallest number. If we used only this box then we'd have the least overflow.
+We can pick the box with the smallest number. If we used only this box then we'd have the least overflow.  
 This chosen box is the *baseKind*.
  
 2. Remove all kinds of boxes which are too large or don't have common multiples with the *baseKind*
@@ -65,10 +65,10 @@ This chosen box is the *baseKind*.
 		}
 ```
 
-3. Pack the bin - fill the order using the largest remaining kinds first.
+3. Pack the bin - fill the order using largest first.
 
-For example, to make 99 using 33 and 66 then we want 1x66 and 1x33.
-We don't want 3x33. So if you exhaust the kinds in descending order you use the least elements.
+For example, to make 99 using 33 and 66 we want 1x66 and 1x33.  
+We don't want 3x33. So if you exhaust the kinds in descending order you use the least elements.  
 This only works because they are all factors of the target in step 1.
 
 ```go
