@@ -2,6 +2,97 @@
 [![CircleCI](https://circleci.com/gh/afharvey/ww-sweet-shop/tree/master.svg?style=svg)](https://circleci.com/gh/afharvey/ww-sweet-shop/tree/master)
 [![Coverage Status](https://coveralls.io/repos/github/afharvey/ww-sweet-shop/badge.svg?branch=master)](https://coveralls.io/github/afharvey/ww-sweet-shop?branch=master)
 
+## Problem
+
+You have a factory which makes chocolate bars. They come in different kinds of boxes.
+eg: boxes of 10, boxes of 100, boxes of 25
+
+Customers order them, they simply say how many they have. You must fulfill their order using the different kinds of boxes.
+eg: a customer orders 999 chocolate bars.
+
+This looks like a bin packing problem. You must make the order in the most efficient way meeting these criteria:
+1. customer gets at least what they ordered
+2. use the minimum number of boxes
+
+### Example:
+
+Kinds of boxes: 10000, 9000, 8000, 7000, 6000, 5000, 2000, 1000, 500, 250, 99, 66, 34, 33
+A customer orders 752 chocolate bars.
+Using the boxes we have, the best we can send is 759 which is 7 too many but within the rules.
+To fulfill the order we ship these boxes: 99, 99, 99, 99, 99, 99, 99, 66
+
+## Solution
+
+https://github.com/afharvey/ww-sweet-shop/blob/master/packer/packer.go
+
+I believe my implementation will work with any combination of kinds and order sizes which are possible.  
+It has three stages:
+
+1) Determine the best order size - what can we fulfill with the minimum overflow:
+
+We divide the order size by each kind of box. If there's a remainder we add 1.
+```go
+// For example, given 251 and 5 it's 255.
+// For example, given 251 and 2 it's 252.
+// For example, given 251 and 1 it's 251.
+func MakeTarget(requested, unitSize int) int {
+	f := requested / unitSize
+	if requested%unitSize != 0 { // round up
+		f += 1
+	}
+	return f * unitSize
+}
+```
+
+We can pick the box with the smallest number. If we used only this box then we'd have the least overflow.
+This chosen box is the *baseKind*.
+ 
+2. Remove all kinds of boxes which are too large or don't have common multiples with the *baseKind*
+```go
+	for _, i := range kinds {
+
+		if i > target {
+			continue
+		}
+
+		if i == target {
+			return []int{i} // quit early
+		}
+
+		// Exclude kinds which are not multiples of baseKind.
+		if i != baseKind && i%baseKind != 0 {
+			continue
+		}
+```
+
+3. Pack the bin - fill the order using the largest remaining kinds first.
+
+For example, to make 99 using 33 and 66 then we want 1x66 and 1x33.
+We don't want 3x33. So if you exhaust the kinds in descending order you use the least elements.
+This only works because they are all factors of the target in step 1.
+
+```go
+	remaining := target
+
+	for _, kind := range kinds {
+
+		// how many of this kind of box can we fit into the order?
+		numberOfBoxes := remaining / kind
+		remaining -= kind * numberOfBoxes
+
+		for i := 0; i < numberOfBoxes; i++ {
+			output = append(output, kind)
+		}
+	}
+```
+
+
+### notes
+* Throughout this repo I've referred to the different box sizes as *kinds* - kinds of box represented by an integer for their size
+* Looking at the "bin packing" and "knapsack" problems was useful.
+* I've used integer division everywhere
+* bin packing has better solutions if we wanted more dimensions (like amounts in stock or rules about compatible kinds)
+
 ## data demo
 `go run cmd/packer/main.go`
 
