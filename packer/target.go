@@ -8,7 +8,7 @@ package packer
 // For example, given 251 and 1 it's 251.
 func MakeTarget(requested, unitSize int) int {
 	f := requested / unitSize
-	if requested %unitSize != 0 { // round up
+	if requested%unitSize != 0 { // round up
 		f += 1
 	}
 	return f * unitSize

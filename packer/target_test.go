@@ -1,8 +1,9 @@
 package packer_test
 
 import (
-	"github.com/afharvey/ww-sweet-shop/packer"
 	"testing"
+	
+	"github.com/afharvey/ww-sweet-shop/packer"
 )
 
 func TestMakeTarget(t *testing.T) {
@@ -78,7 +79,7 @@ func TestMakeTarget(t *testing.T) {
 			expected:  888,
 		},
 		{
-			name:      "88, 888 -> 968",  // 888/88=10.09 ~ 11
+			name:      "88, 888 -> 968", // 888/88=10.09 ~ 11
 			requested: 888,
 			unitSize:  88,
 			expected:  968,
@@ -120,10 +121,10 @@ func TestMakeTarget(t *testing.T) {
 			expected:  251,
 		},
 		{
-			name: "33, 12001 -> 12012",
+			name:      "33, 12001 -> 12012",
 			requested: 12001,
-			unitSize: 33,
-			expected: 12012,
+			unitSize:  33,
+			expected:  12012,
 		},
 	}
 

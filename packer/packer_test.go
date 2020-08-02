@@ -7,61 +7,118 @@ import (
 	"testing"
 )
 
-// Example table from the brief
-var exampleKinds = []*packer.Box{
-	{Size: 250},
-	{Size: 500},
-	{Size: 1000},
-	{Size: 2000},
-	{Size: 5000},
-}
-
-func TestBuildOrder(t *testing.T) {
+func TestMakeOrder(t *testing.T) {
 	tests := []struct {
-		Name     string
-		Kinds    []*packer.Box
-		Quantity int
-		Expected *packer.Order
+		name      string
+		challenge int
+		kinds     []int
+		expected  []int
 	}{
-		//{
-		//	Name:     "1, first example where we immediately overflow",
-		//	Kinds:    exampleKinds,
-		//	Quantity: 1,
-		//	Expected: &packer.Order{Desired: 1, Size: 250, Boxes: []*packer.Box{{Size: 250}}},
-		//},
-		//{
-		//	Name:     "250, second example where we can use one box",
-		//	Kinds:    exampleKinds,
-		//	Quantity: 250,
-		//	Expected: &packer.Order{Desired: 250, Size: 250, Boxes: []*packer.Box{{Size: 250}}},
-		//},
+		// Examples from the spec
 		{
-			Name:     "251, third example where we can use one box but must find it",
-			Kinds:    exampleKinds,
-			Quantity: 251,
-			Expected: &packer.Order{Desired: 251, Size: 500, Boxes: []*packer.Box{{Size: 500}}},
+			name:      "1: 1x250",
+			challenge: 1,
+			kinds:     []int{250, 500, 1000, 2000, 5000},
+			expected:  []int{250},
 		},
-		//{
-		//	Name:     "501, fourth example where we must combine boxes",
-		//	Kinds:    exampleKinds,
-		//	Quantity: 501,
-		//	Expected: &packer.Order{Desired: 501, Size: 750, Boxes: []*packer.Box{{Size: 500}, {Size: 250}}},
-		//},
-		//{
-		//	Name:     "12001, fifth example where we must combine more boxes",
-		//	Kinds:    exampleKinds,
-		//	Quantity: 12001,
-		//	Expected: &packer.Order{Desired: 12001, Size: 12250, Boxes: []*packer.Box{
-		//		{Size: 5000}, {Size: 5000}, {Size: 2000}, {Size: 250},
-		//	}},
-		//},
+		{
+			name:      "250: 1x250",
+			challenge: 250,
+			kinds:     []int{250, 500, 1000, 2000, 5000},
+			expected:  []int{250},
+		},
+		{
+			name:      "251: 1x500",
+			challenge: 251,
+			kinds:     []int{250, 500, 1000, 2000, 5000},
+			expected:  []int{500},
+		},
+		{
+			name:      "501: 1x500, 1x250",
+			challenge: 501,
+			kinds:     []int{250, 500, 1000, 2000, 5000},
+			expected:  []int{500, 250},
+		},
+		{
+			name:      "12001: 2x5000, 1x2000, 1x250",
+			challenge: 12001,
+			kinds:     []int{250, 500, 1000, 2000, 5000},
+			expected:  []int{5000, 5000, 2000, 250},
+		},
+		// Interesting numbers
+		{
+			name:      "1: 1x33",
+			challenge: 1,
+			kinds:     []int{33, 34, 66, 99, 250, 500, 1000, 2000, 5000, 6000, 7000, 8000, 9000, 10000},
+			expected:  []int{33},
+		},
+		{
+			name:      "20: 1x33",
+			challenge: 20,
+			kinds:     []int{33, 34, 66, 99, 250, 500, 1000, 2000, 5000, 6000, 7000, 8000, 9000, 10000},
+			expected:  []int{33},
+		},
+		{
+			name:      "66: 1x66",
+			challenge: 66,
+			kinds:     []int{33, 34, 66, 99, 250, 500, 1000, 2000, 5000, 6000, 7000, 8000, 9000, 10000},
+			expected:  []int{66},
+		},
+		{
+			name:      "77: 1x99",
+			challenge: 77,
+			kinds:     []int{33, 34, 66, 99, 250, 500, 1000, 2000, 5000, 6000, 7000, 8000, 9000, 10000},
+			expected:  []int{99},
+		},
+		{
+			name:      "100: 3x34",
+			challenge: 100,
+			kinds:     []int{33, 34, 66, 99, 250, 500, 1000, 2000, 5000, 6000, 7000, 8000, 9000, 10000},
+			expected:  []int{34, 34, 34},
+		},
+		{
+			name:      "250: 1x250",
+			challenge: 250,
+			kinds:     []int{33, 34, 66, 99, 250, 500, 1000, 2000, 5000, 6000, 7000, 8000, 9000, 10000},
+			expected:  []int{250},
+		},
+		{
+			name:      "251: 4x66",
+			challenge: 251,
+			kinds:     []int{33, 34, 66, 99, 250, 500, 1000, 2000, 5000, 6000, 7000, 8000, 9000, 10000},
+			expected:  []int{66, 66, 66, 66},
+		},
+		{
+			name:      "500: 1x500",
+			challenge: 500,
+			kinds:     []int{33, 34, 66, 99, 250, 500, 1000, 2000, 5000, 6000, 7000, 8000, 9000, 10000},
+			expected:  []int{500},
+		},
+		{
+			name:      "501: 15x34",
+			challenge: 501,
+			kinds:     []int{33, 34, 66, 99, 250, 500, 1000, 2000, 5000, 6000, 7000, 8000, 9000, 10000},
+			expected:  []int{34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34},
+		},
+		{
+			name:      "752: 7x99,1x66",
+			challenge: 752,
+			kinds:     []int{33, 34, 66, 99, 250, 500, 1000, 2000, 5000, 6000, 7000, 8000, 9000, 10000},
+			expected:  []int{99, 99, 99, 99, 99, 99, 99, 66},
+		},
+		{
+			name:      "100000: 10x10000",
+			challenge: 100000,
+			kinds:     []int{33, 34, 66, 99, 250, 500, 1000, 2000, 5000, 6000, 7000, 8000, 9000, 10000},
+			expected:  []int{10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000},
+		},
 	}
 
 	for _, test := range tests {
-		t.Run(test.Name, func(t *testing.T) {
-			result := packer.BuildOrder(test.Quantity, test.Kinds)
-			if !reflect.DeepEqual(test.Expected, result) {
-				t.Log(deep.Equal(test.Expected, result))
+		t.Run(test.name, func(t *testing.T) {
+			result := packer.MakeOrder(test.challenge, test.kinds)
+			if !reflect.DeepEqual(test.expected, result) {
+				t.Log(deep.Equal(test.expected, result))
 				t.FailNow()
 			}
 		})
